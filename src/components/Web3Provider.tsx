@@ -1,16 +1,22 @@
 import { useTheme } from 'next-themes'
-import { APP_NAME } from '@/lib/consts'
-import { createClient, WagmiConfig } from 'wagmi'
-import { ConnectKitProvider, getDefaultClient } from 'connectkit'
+import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
+import { alchemyProvider } from 'wagmi/providers/alchemy'
+import { ConnectKitProvider } from 'connectkit'
+import { publicProvider } from 'wagmi/providers/public'
 
-const client = createClient(
-	getDefaultClient({
-		appName: APP_NAME,
-		autoConnect: true,
-		infuraId: process.env.NEXT_PUBLIC_INFURA_ID,
-	})
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
+import { klaytn } from './KlaytnProvider'
+
+const { chains, provider } = configureChains(
+	[chain.goerli, klaytn.baobab],
+	[alchemyProvider({ apiKey: process.env.ALCHEMY_API_KEY }), publicProvider()]
 )
 
+const client = createClient({
+	autoConnect: true,
+	connectors: [new MetaMaskConnector({ chains })],
+	provider,
+})
 const Web3Provider = ({ children }) => {
 	const { resolvedTheme } = useTheme()
 
