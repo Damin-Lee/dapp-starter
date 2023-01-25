@@ -1,28 +1,29 @@
 import { useTheme } from 'next-themes'
-import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
+import { configureChains, createClient, WagmiConfig } from 'wagmi'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
-import { ConnectKitProvider } from 'connectkit'
+import { ConnectKitProvider, getDefaultClient } from 'connectkit'
 import { publicProvider } from 'wagmi/providers/public'
+import { mainnet, goerli } from 'wagmi/chains'
 
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
-import { klaytn } from './KlaytnProvider'
+import { cypress, baobab } from './KlaytnProvider'
 
 const { chains, provider } = configureChains(
-	[chain.goerli, klaytn.baobab],
+	[goerli, baobab],
 	[alchemyProvider({ apiKey: process.env.ALCHEMY_API_KEY }), publicProvider()]
 )
 
-const client = createClient({
-	autoConnect: true,
-	connectors: [new MetaMaskConnector({ chains })],
-	provider,
-})
-const Web3Provider = ({ children }) => {
-	const { resolvedTheme } = useTheme()
+const client = createClient(
+	getDefaultClient({
+		autoConnect: false,
+		appName: process.env.NEXT_PUBLIC_APP_NAME,
+		chains,
+	})
+)
 
+const Web3Provider = ({ children }) => {
 	return (
 		<WagmiConfig client={client}>
-			<ConnectKitProvider mode={resolvedTheme as 'light' | 'dark'}>{children}</ConnectKitProvider>
+			<ConnectKitProvider mode="dark">{children}</ConnectKitProvider>
 		</WagmiConfig>
 	)
 }
